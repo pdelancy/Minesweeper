@@ -16,7 +16,7 @@ $( document ).ready(function() {
   let onSquare = null;
 
   //randomly generates bombs
-  localStorage.clear();
+  //localStorage.clear();
   const checkLocalStorage = () => {
     if(Date.now() - parseInt(localStorage.getItem('time')) < 1000 * 60 * 60 * 24){
       state = JSON.parse(localStorage.getItem('state'))
@@ -24,15 +24,7 @@ $( document ).ready(function() {
     }
   }
 
-  const boardFunctions = (isRestoring) => {
-
-    for( let i = 0; i < state.rows; i++){
-      $(".gameboard").append(`<div class="row" id=${i}></div>`)
-      for( let j = 0; j < state.columns; j++){
-        $(`.row#${i}`).append(`<div class="square" id=${j}-${i}></div>`)
-      }
-    }
-
+  const addBanner = () => {
     $("#root").prepend(`
       <div class="restart-game-container">
         <button class="restart-game"> New Game </button>
@@ -42,6 +34,20 @@ $( document ).ready(function() {
         <div class="bombs-remaining">${state.flagCounter}</div>
       </div>
       `)
+  }
+
+  const boardFunctions = (isRestoring) => {
+
+    state.flagCounter = Math.floor( (state.rows * state.columns) / 10) * state.difficultyScale;
+
+    for( let i = 0; i < state.rows; i++){
+      $(".gameboard").append(`<div class="row" id=${i}></div>`)
+      for( let j = 0; j < state.columns; j++){
+        $(`.row#${i}`).append(`<div class="square" id=${j}-${i}></div>`)
+      }
+    }
+
+    addBanner();
 
     localStorage.setItem('state', JSON.stringify(state));
     localStorage.setItem('time', Date.now())
@@ -53,7 +59,8 @@ $( document ).ready(function() {
     $(".square").click(function(e){
       if(state.isOver) return;
       if(!state.isStarted){
-        if(!isRestoring) generateBombs(e.target.value);
+        if(!isRestoring) generateBombs(e.target.id);
+        console.log(state.bombs);
         state.isStarted = true;
       }
       if(state.bombs[e.target.id]){
@@ -120,15 +127,14 @@ $( document ).ready(function() {
   }
 
   let generateBombs = (id) => {
-    state.flagCounter = Math.floor( (state.rows * state.columns) / 10) * state.difficultyScale;
     for( let i = 0; i < state.flagCounter; i++){
       let row = null;
       let column = null;
-      while(!row || `${row}-${col}` === id || state.bombs[`${row}-${col}`]){
+      while(!row || id === `${row}-${column}` || state.bombs[`${row}-${column}`]){
         row = Math.floor(Math.random() * Math.floor( state.rows ));
-        col = Math.floor(Math.random() * Math.floor( state.columns ));
+        column = Math.floor(Math.random() * Math.floor( state.columns ));
       }
-      state.bombs[`${row}-${col}`] = true;
+      state.bombs[`${column}-${row}`] = true;
     }
   }
 
